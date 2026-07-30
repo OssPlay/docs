@@ -1,0 +1,50 @@
+---
+title: Custom domains & HTTPS
+description: Point a domain at your OSSPlay instance and get automatic HTTPS.
+---
+
+## Where to set it
+
+From an instance root account, the domain lives in two places that stay in sync — whichever one you
+fill in marks the same thing as done:
+
+- The onboarding wizard's **Domain** step, the first time the instance is set up.
+- **Settings → Instance → Domain**, any time after.
+
+Both call the same endpoint and save to the same place, so setting it from one doesn't leave the
+other looking unconfigured.
+
+## What actually happens
+
+OSSPlay's self-hosted stack runs behind Caddy, which already does automatic Let's Encrypt HTTPS for
+whatever domain it's configured with — that part isn't new. What the Domain field does is let you
+change that domain *after* the stack is already running, without SSH'ing in, editing an `.env` file,
+and restarting containers. Saving a domain here sends it to Caddy's admin API, which live-reloads the
+reverse proxy configuration.
+
+Saving a domain always stores it, even if that push fails or can't be attempted — you're never
+blocked from recording the domain you intend to use. The response tells you plainly whether it was
+actually applied:
+
+- **Applied**: Caddy accepted the new configuration and will attempt to obtain a certificate for it in
+  the background. This confirms Caddy accepted the config, not that a certificate has been issued yet
+  — that part happens asynchronously and isn't tracked by this field.
+- **Not applied**: shown with a plain-language reason. The most common one, by design, is a local
+  development environment or any deployment that isn't the standard Docker Compose stack — there's no
+  Caddy to reach in that case, and the step is skippable specifically so this never blocks anything.
+
+## Requirements for a domain to actually work
+
+- It must already resolve (DNS A/AAAA record) to the server before you save it — OSSPlay doesn't
+  manage DNS for you.
+- It can't be `localhost` or a bare IP address — neither can get a publicly trusted certificate, and
+  the field rejects them upfront with a clear message rather than accepting something that will never
+  work.
+
+## Passkeys and domain changes
+
+If you've already enrolled a passkey against the instance's previous hostname (a bare IP,
+`localhost`, or an earlier domain), it stops validating once you switch domains — this is a property
+of how WebAuthn works, not something this feature can avoid. See [Passkeys](/docs/reference/passkeys)
+for the full explanation. If you're setting up for real use, get your domain configured and stable
+before enrolling passkeys.

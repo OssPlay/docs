@@ -16,7 +16,7 @@ recovery methods:
   you straight in — it's a full replacement for the password, not a second step after it.
 
 If neither method is available to you (no SMTP configured, and you never enrolled a passkey), you'll
-need to ask your instance root to reset your password — see below.
+need to ask your instance root to reset your password from the Users tab — see below.
 
 ## Two-factor codes
 
@@ -24,6 +24,23 @@ If you have two-factor authentication enabled and lose access to your authentica
 the eight recovery codes you saved when you enabled it at the login screen's code prompt instead of a
 TOTP code — the same input accepts either. Each recovery code works once. From **Settings → Account**,
 you can generate a fresh set at any time (this invalidates the old set).
+
+## If you're an instance root helping someone else
+
+From **Settings → Instance → Users**, an instance root can act on any account on the instance without
+needing that user's email or authenticator access at all:
+
+- **Reset password** generates a strong temporary password and shows it once — there's no way to set
+  a specific password from this panel, only generate one, so nothing ever passes through a form field
+  that could end up in browser autofill or a shared screen.
+- **Reset 2FA & passkeys** clears TOTP, recovery codes, and every enrolled passkey in one step (with a
+  confirmation click first), since leaving any of them in place would just leave the person stuck at
+  the next prompt.
+
+Both actions also revoke all of that user's existing sessions, and both work regardless of whether the
+target account belongs to the same organization as the root performing the reset — this is an
+instance-wide power, deliberately not something org owners/admins also get (see
+[Permissions model](/docs/reference/permissions) for why).
 
 ## If you're locked out entirely
 
