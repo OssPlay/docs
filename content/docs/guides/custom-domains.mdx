@@ -14,6 +14,12 @@ fill in marks the same thing as done:
 Both call the same endpoint and save to the same place, so setting it from one doesn't leave the
 other looking unconfigured.
 
+That "same place" is a YAML file (`infra/ossplay.yaml`), bind-mounted into the `api` container so it
+survives `docker compose down`/`up` and container recreation — not a database row. You can inspect or
+hand-edit it directly on the host if you want to, though there's no need to; the UI above covers the
+normal case. `OSSPLAY_CONFIG_PATH` controls where the `api` container looks for it, which is also the
+knob a SaaS-style deployment would use to mount a separate file per tenant instead of one shared file.
+
 ## What actually happens
 
 OSSPlay's self-hosted stack runs behind Caddy, which already does automatic Let's Encrypt HTTPS for
