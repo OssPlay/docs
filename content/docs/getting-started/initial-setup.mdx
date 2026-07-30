@@ -1,0 +1,46 @@
+---
+title: Initial setup & onboarding
+description: What happens the first time you open a freshly deployed OSSPlay instance.
+---
+
+## Setup
+
+The first time anyone opens a freshly deployed instance, OSSPlay redirects every request to `/setup`.
+This page creates exactly one thing: the **instance root** account — the name, email, and password
+you'll use to log in from now on. There's no organization or storage configuration here; it exists
+purely to get one authenticated account into an otherwise-empty instance.
+
+Once submitted, you're logged in immediately and redirected into onboarding. `/setup` itself becomes
+permanently unreachable after this — visiting it again once a root account exists is rejected.
+
+## Onboarding
+
+Onboarding is a short, three-step wizard that runs once, right after setup, before you can reach the
+dashboard. Each step is its own page (not a single scrolling form), so you can leave and come back to
+exactly where you were:
+
+1. **Domain** — point a domain at this server for automatic HTTPS. Skippable.
+2. **Email** — configure SMTP so the instance can send invitation and password-reset emails.
+   Skippable.
+3. **Organization** — create your first organization. **Required** — an instance isn't useful for
+   anything until at least one organization exists, so this step can't be skipped.
+
+Skipping the domain or email step doesn't lose anything — both live under Instance settings (below)
+and can be filled in later exactly the same way. There's no "you missed your chance" state; a skipped
+step just shows as incomplete until you go fill it in from settings instead.
+
+Until the required organization step is finished, every part of the dashboard redirects back into the
+onboarding wizard — there's no way to end up on a dashboard screen with zero organizations to work in.
+
+## Instance settings
+
+Everything from the onboarding wizard's domain and email steps is also reachable later, as an
+instance root, from **Settings → Instance**. Filling either one in from there marks the corresponding
+onboarding step as complete too — there's a single source of truth for "is this configured," not two
+separate settings that can drift out of sync.
+
+## If you get locked out
+
+See [Account recovery](/docs/guides/account-recovery) for what to do if you can't log back in —
+including the case where the instance root itself has no working password and no working second
+factor.
