@@ -6,6 +6,14 @@ Add new entries at the top. Mark a decision `Superseded` (don't delete it) if a 
 
 ---
 
+## 2026-07-30 — Content moved to root-level routing, dropping the `/docs` prefix
+
+**Status:** Decided (Superseded, in part: replaces the entry below's `app/docs/[[...slug]]/page.tsx` file layout)
+
+Fumadocs' default convention nests everything under `/docs/...` (e.g. `/docs/getting-started/initial-setup`), which made sense for the CLI-scaffolded assumption that a docs site lives as a path under some other homepage. That's not this repo's situation — `docs` is its own independently-deployed site (`docs.ossplay.com`), so the prefix was pure redundancy. `DocsLayout` now wraps the root `app/layout.tsx` directly, the catch-all route lives at `app/[[...slug]]/page.tsx`, and `lib/source.ts`'s `baseUrl` is `/` — content now resolves at e.g. `/getting-started/initial-setup` with no `/docs` segment. `app/page.tsx`'s old `redirect('/docs')` is gone; the catch-all's empty-slug case already serves `content/docs/index.mdx` as the home page directly.
+
+---
+
 ## 2026-07-30 — `docs` repo created (fumadocs), fixed three-category taxonomy
 
 **Status:** Decided
