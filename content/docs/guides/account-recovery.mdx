@@ -1,0 +1,42 @@
+---
+title: Account recovery
+description: What to do when you can't log back in, from a locked-out user up to a locked-out instance root.
+---
+
+## Forgot your password
+
+From the login page, **Forgot password?** takes you to `/forgot-password`, which offers up to two
+recovery methods:
+
+- **Email** — only shown if the instance has SMTP configured. Enter your email and, if an account
+  matches, you'll get a reset link. The response is identical whether or not the email matches an
+  account, so this can't be used to check who has an account on the instance.
+- **Passkey** — always available if your browser supports WebAuthn. Choose **Use a passkey
+  instead**, and your browser will prompt you to pick a passkey. A successful passkey ceremony logs
+  you straight in — it's a full replacement for the password, not a second step after it.
+
+If neither method is available to you (no SMTP configured, and you never enrolled a passkey), you'll
+need to ask your instance root to reset your password — see below.
+
+## Two-factor codes
+
+If you have two-factor authentication enabled and lose access to your authenticator app, use one of
+the eight recovery codes you saved when you enabled it at the login screen's code prompt instead of a
+TOTP code — the same input accepts either. Each recovery code works once. From **Settings → Account**,
+you can generate a fresh set at any time (this invalidates the old set).
+
+## If you're locked out entirely
+
+An instance root with no working password, no recovery codes, and no passkey can't use any of the
+above — logging in is exactly what's broken. For that case, an operator with shell access to the
+server can run the CLI recovery tool directly against the database:
+
+```bash
+docker compose exec api bun run cli:reset-root
+```
+
+This resets the root account's password and clears every second factor (TOTP, recovery codes,
+passkeys) in one step, since a root locked out by password is, by definition, also unable to clear
+whichever second factor is also blocking them. It requires re-typing the account's email to confirm
+before doing anything. See the tool's own `apps/api/src/cli/README.md` in the `ossplay` repo for the
+full flag reference.
