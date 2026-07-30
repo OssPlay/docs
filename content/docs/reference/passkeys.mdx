@@ -1,0 +1,44 @@
+---
+title: Passkeys
+description: How passkey authentication is implemented in OSSPlay.
+---
+
+## What a passkey replaces
+
+A passkey is a **full first-factor login replacement**, not a second factor stacked on top of your
+password. Enrolling one doesn't require or interact with two-factor authentication (TOTP) at all —
+the two are independent, parallel ways to authenticate. Logging in with a passkey never triggers a
+follow-up 2FA prompt, even if TOTP is also enabled on the account.
+
+## Managing passkeys
+
+From **Settings → Account → Passkeys**, you can register a new passkey (with an optional label, e.g.
+"MacBook Touch ID"), see when each one was added and last used, and remove ones you no longer use.
+There's no limit on how many passkeys an account can have.
+
+## How sign-in works
+
+Passkey login is **discoverable/usernameless** — the login button doesn't ask for an email first. Your
+browser is simply asked "does the user have a passkey for this site?" and prompts you to choose from
+whatever it has. Which account that resolves to isn't determined until the credential itself is
+verified.
+
+## RP ID and domain changes
+
+The WebAuthn Relying Party ID (RP ID) — the value a passkey is bound to at registration time — is
+derived from the hostname of the request that registered it, not from any domain configured for the
+instance. This means passkeys work immediately, without requiring the (skippable) onboarding domain
+step to be completed first.
+
+The tradeoff is a standard, unavoidable property of WebAuthn: **a passkey registered against one
+hostname stops working if you later access the instance under a different one** (e.g. registering
+while on a bare IP or `localhost`, then switching to a real domain, or changing domains later). This
+isn't an OSSPlay-specific limitation or a bug — it's how RP IDs work for every WebAuthn implementation.
+If you're setting up an instance for real use, register your passkeys after your domain is configured
+and stable.
+
+## Browser support
+
+The passkey button/section only appears once the browser reports WebAuthn support
+(`window.PublicKeyCredential` present) — checked client-side after the page mounts, so there's no
+broken button on unsupported browsers.
