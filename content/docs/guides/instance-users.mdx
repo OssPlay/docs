@@ -1,0 +1,44 @@
+---
+title: Managing instance users
+description: Browse, search, and manage every account on the instance from one place.
+---
+
+## Where to find it
+
+**Instance → Users** lists every account on the instance — not scoped to any one organization. This
+is the only place identity/security actions (password reset, 2FA clear, block, delete) live; an
+organization's own **Members** page stays scoped to membership and role within that one org, with no
+security actions of its own. See [Permissions model](/reference/permissions) for why that split
+exists.
+
+For what each security action actually does (reset password, reset 2FA, block/unblock, delete), see
+[Account recovery](/guides/account-recovery#if-youre-an-instance-root-helping-someone-else) — this
+page covers the list and detail views around them.
+
+## Searching and paging
+
+The search box filters by name or email, debounced so it doesn't fire a request per keystroke. Rows
+per page is adjustable (10/25/50); both the search and the page you're on are reflected in the actual
+API request, so the result set you're looking at always matches what's currently filtered — nothing is
+sliced client-side out of a larger fetch.
+
+## Bulk block/unblock
+
+Check the box on any row (or the header checkbox to select everyone on the current page) to reveal
+**Block selected** / **Unblock selected**. This reuses the same per-user block/unblock action as the
+detail page, just looped over your selection — there's no separate bulk endpoint or bulk-specific
+behavior to be aware of.
+
+## The user detail page
+
+Click **Manage** on any row to open that account's detail page:
+
+- **Security** — password reset, 2FA/passkey reset, block/unblock. See
+  [Account recovery](/guides/account-recovery) for what each one does.
+- **Organizations** — every organization the account belongs to, with an inline role selector
+  (member/admin/owner) and a **Remove** action per row. Changing a role or removing membership here
+  takes effect immediately, the same as if it were done from that organization's own Members page.
+- **Delete user** — permanently removes the account. Blocked (with a clear reason) if the account is
+  the instance's only root, or the sole owner of an organization it belongs to.
+
+Every action on this page is recorded in the [audit log](/guides/audit-logs).

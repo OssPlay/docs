@@ -1,0 +1,38 @@
+---
+title: Audit logs
+description: A record of instance-level changes made by the instance root.
+---
+
+## Where to find it
+
+**Instance → Audit Logs** (gated by its own `instance:view_audit_log` permission — see
+[Permissions model](/reference/permissions)) lists a read-only, paginated, newest-first record of
+instance-level changes. Filter by **actor** (name or email) or **action**, either alone or together.
+
+## What's logged
+
+This is a deliberately short, fixed list — not a general-purpose event bus that records everything.
+Entries exist for:
+
+- **Instance settings** — domain/certificate provider changes, SMTP config add/edit/delete/make-default.
+- **User management** (root-initiated only) — password reset, 2FA/passkey clear, block, unblock,
+  delete, cross-org role changes. See [Account recovery](/guides/account-recovery) for what each
+  action actually does.
+- **SSH keys & remote servers** — add and delete for both, plus connection tests. See
+  [Remote servers & SSH keys](/guides/remote-servers).
+- **Organization creation.**
+
+**What's not logged**: anything read-only, and anything at the organization-member level (an org
+owner adding a project, changing a member's org role, and similar). Those aren't instance-wide
+actions, and adding them would turn this into the general event bus it's deliberately not.
+
+## What each entry shows
+
+- **When** — timestamp of the action.
+- **Actor** — the account that performed it. Every logged action requires an authenticated root
+  session, so this is never blank.
+- **Action** — a fixed machine-readable string (e.g. `instance.domain.update`,
+  `instance.user.block`) rather than a freeform description, so filtering by action is exact.
+- **Target** — the type and ID of whatever was acted on, where applicable (a user, an SMTP config, an
+  SSH key, a remote server).
+- **IP** — the request's source IP, best-effort.

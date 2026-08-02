@@ -1,4 +1,11 @@
 {
   "title": "Guides",
-  "pages": ["account-recovery", "custom-domains"]
+  "pages": [
+    "account-recovery",
+    "custom-domains",
+    "email-smtp",
+    "instance-users",
+    "remote-servers",
+    "audit-logs"
+  ]
 }

@@ -22,14 +22,16 @@ membership row required. Concretely, root can:
 | Permission | Covers |
 | --- | --- |
 | `instance:manage_orgs` | Create organizations (including the required onboarding step) |
-| `instance:manage_settings` | SMTP configuration, the custom domain |
-| `instance:manage_users` | Force-reset any user's password, or clear their 2FA/passkeys |
-| `instance:manage_workers` | Worker-fleet provisioning |
+| `instance:manage_settings` | SMTP configuration, the custom domain and certificate provider |
+| `instance:manage_users` | Every account on the instance: force-reset a password, clear 2FA/passkeys, block/unblock, delete, and edit an account's role in any organization |
+| `instance:manage_workers` | SSH keys, remote servers, and worker-fleet provisioning |
+| `instance:view_audit_log` | Read-only access to the [audit log](/guides/audit-logs) |
 
 `instance:manage_users` is deliberately **not** extended to org owners/admins — a user's password,
 2FA secret, and passkeys aren't associated with any particular organization at all, so there's no
 existing mechanism for an org-scoped role to reach them. It's root's usual "sees everything" reach
-applied to one more resource, not a new kind of scope-crossing.
+applied to one more resource, not a new kind of scope-crossing. See
+[Managing instance users](/guides/instance-users) for what each of these looks like in the dashboard.
 
 ## Organization roles
 

@@ -1,0 +1,51 @@
+---
+title: Remote servers & SSH keys
+description: Register the SSH keys and VPS hosts OSSPlay's worker fleet will eventually run on.
+---
+
+## What this is for
+
+OSSPlay's processing pipeline runs on distributed workers connected over SSH, not a built-in compute
+service. Both pages here are gated behind the `instance:manage_workers` permission — see
+[Permissions model](/reference/permissions). This pass covers the two pieces that exist today:
+
+- **SSH Keys** (`Instance → SSH Keys`) — keypairs used to connect to a remote host.
+- **Remote Servers** (`Instance → Remote Servers`) — registered VPS hosts, each tied to one SSH key,
+  with a real connection test.
+
+**Actually provisioning a worker container onto a server isn't built yet.** The **Provision worker**
+button is visible but disabled everywhere, with a tooltip explaining why: it needs a dedicated worker
+image that doesn't exist on the target server yet. Don't read its presence as a working feature —
+it's there so the intended shape of the page is visible ahead of that work landing.
+
+## Adding an SSH key
+
+**Add key** offers two modes:
+
+- **Generate** — OSSPlay creates a fresh Ed25519 keypair server-side. After it's created, the public
+  key is shown once in a copy-only field — copy it into the target VPS's `~/.ssh/authorized_keys`
+  yourself. The private key is encrypted at rest and never displayed again after this point.
+- **Paste existing** — already have a keypair you'd rather reuse? Paste its private key PEM in. OSSPlay
+  derives the matching public key and fingerprint from what you paste; there's no separate "import"
+  step. Passphrase-protected keys aren't supported, since there's nowhere in this flow to enter one —
+  paste an unencrypted key.
+
+Every key's fingerprint uses the same `SHA256:...` format `ssh-keygen -lf` prints, so you can
+cross-check a pasted key against what you already have on file.
+
+A key can't be deleted while a remote server still references it — remove the server first.
+
+## Adding a remote server
+
+**Add server** takes a label, host, port (defaults to 22), SSH username, and which registered key to
+connect with. You need at least one SSH key added before this form has anything to select.
+
+## Testing a connection
+
+**Test** on a server row does the one real SSH operation available today: connects and runs `whoami`.
+No Docker, no container, nothing installed — just confirmation the key and credentials actually reach
+that host. The result updates the row's status badge (Online / Error) and, on failure, shows the
+specific error underneath it so you can tell a wrong username apart from an unreachable host apart
+from a rejected key.
+
+Every add, delete, and test is recorded in the [audit log](/guides/audit-logs).

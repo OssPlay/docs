@@ -22,13 +22,14 @@ need to ask your instance root to reset your password from the Users tab — see
 
 If you have two-factor authentication enabled and lose access to your authenticator app, use one of
 the eight recovery codes you saved when you enabled it at the login screen's code prompt instead of a
-TOTP code — the same input accepts either. Each recovery code works once. From **Settings → Account**,
-you can generate a fresh set at any time (this invalidates the old set).
+TOTP code — the same input accepts either. Each recovery code works once. From **Settings →
+Security**, you can generate a fresh set at any time (this invalidates the old set).
 
 ## If you're an instance root helping someone else
 
-From **Settings → Instance → Users**, an instance root can act on any account on the instance without
-needing that user's email or authenticator access at all:
+From **Instance → Users**, an instance root can act on any account on the instance without
+needing that user's email or authenticator access at all. Click a user's **Manage** link for their
+detail page:
 
 - **Reset password** generates a strong temporary password and shows it once — there's no way to set
   a specific password from this panel, only generate one, so nothing ever passes through a form field
@@ -36,11 +37,17 @@ needing that user's email or authenticator access at all:
 - **Reset 2FA & passkeys** clears TOTP, recovery codes, and every enrolled passkey in one step (with a
   confirmation click first), since leaving any of them in place would just leave the person stuck at
   the next prompt.
+- **Block user** disables sign-in immediately — including for any session that's already active — without
+  deleting the account or its history. **Unblock** reverses it. Useful when you want someone locked out
+  right now but aren't ready to remove them.
+- **Delete user** is permanent and removes the account from every organization it belonged to. Blocked if
+  the account is the instance's only root, or the sole owner of an organization it belongs to — either
+  would leave something ownerless, so the panel won't let it happen from here.
 
-Both actions also revoke all of that user's existing sessions, and both work regardless of whether the
-target account belongs to the same organization as the root performing the reset — this is an
-instance-wide power, deliberately not something org owners/admins also get (see
-[Permissions model](/reference/permissions) for why).
+Every action here is logged to the [audit log](/guides/audit-logs). All of them also revoke that
+user's existing sessions, and all work regardless of whether the target account belongs to the same
+organization as the root performing the action — this is an instance-wide power, deliberately not
+something org owners/admins also get (see [Permissions model](/reference/permissions) for why).
 
 ## If you're locked out entirely
 

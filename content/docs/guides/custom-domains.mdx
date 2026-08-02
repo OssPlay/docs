@@ -9,7 +9,7 @@ From an instance root account, the domain lives in two places that stay in sync 
 fill in marks the same thing as done:
 
 - The onboarding wizard's **Domain** step, the first time the instance is set up.
-- **Settings → Instance → Domain**, any time after.
+- **Instance → Domain**, any time after.
 
 Both call the same endpoint and save to the same place, so setting it from one doesn't leave the
 other looking unconfigured.
@@ -38,6 +38,20 @@ actually applied:
 - **Not applied**: shown with a plain-language reason. The most common one, by design, is a local
   development environment or any deployment that isn't the standard Docker Compose stack — there's no
   Caddy to reach in that case, and the step is skippable specifically so this never blocks anything.
+
+## Certificate provider
+
+Alongside the domain, the form takes:
+
+- **ACME contact email** — required once a domain is set. The certificate authority uses this for
+  renewal and expiry notices, not for anything OSSPlay itself sends. Defaults to your own account
+  email; change it if the instance should notify a different address.
+- **Certificate provider** — Let's Encrypt (the default), ZeroSSL, or a custom ACME directory URL for
+  a different CA. This maps directly to Caddy's `acme_ca` directive, so switching providers here and
+  saving re-pushes the whole Caddy config, not just the domain.
+
+Choosing **Custom** requires an ACME directory URL from whichever CA you're pointing at — the field
+won't save without one.
 
 ## Requirements for a domain to actually work
 

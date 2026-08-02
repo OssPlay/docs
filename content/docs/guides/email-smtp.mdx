@@ -1,0 +1,50 @@
+---
+title: Email & SMTP
+description: Configure how OSSPlay sends invitation and password-reset emails.
+---
+
+## Where to set it
+
+From an instance root account, **Instance → Email & SMTP** lists every SMTP config on the instance.
+The onboarding wizard's **Email** step creates the first one and, since a first config has nothing to
+be "default" relative to, it becomes the default automatically.
+
+Unlike the domain setting, SMTP configs live in the database, not a file — the instance can hold more
+than one (a primary provider and a backup, say), each with its own name, host, credentials, and from
+address.
+
+## Adding a config
+
+**Add config** opens a form for:
+
+- **Name** — a label to tell configs apart in the list, not sent anywhere.
+- **Host / Port / Use TLS** — your provider's SMTP endpoint. Use TLS means "encrypt this connection";
+  OSSPlay works out whether that means implicit TLS (port 465) or STARTTLS (port 587 and most others)
+  from the port itself, so you don't need to know which mode your provider expects.
+- **Username / Password** — optional; leave both blank for a relay that doesn't require
+  authentication.
+- **From name / From address** — what recipients see as the sender.
+
+The first config an instance ever adds becomes the default with no extra step. Every config after
+that stays non-default until you explicitly promote it.
+
+## Managing an existing config
+
+Each row has:
+
+- **Test** — prompts for a recipient email (defaulting to your own account email) and sends a real
+  message through that config. Useful for confirming credentials work before relying on the config for
+  real invitations or password resets.
+- **Manage** — opens the same form pre-filled with the config's current values. The password field is
+  left blank; leave it blank to keep the stored password unchanged, or type a new one to replace it.
+- **Make default** — promotes a non-default config. Exactly one config is default at a time; every
+  outgoing OSSPlay email (invitations, password resets) goes through whichever one that is.
+- **Delete** — removes the config. If it was the default, no config is default afterward until you
+  promote another one — OSSPlay won't guess which remaining config should take over.
+
+## If email sending fails
+
+A clear connection or authentication error surfaces from **Test**, or from whatever real send
+triggered it (an invitation, a password reset request). The most common cause is a port/TLS mismatch
+— double-check your provider's documentation for which port expects implicit TLS versus STARTTLS if a
+config that looks correct still won't connect.
