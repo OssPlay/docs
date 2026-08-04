@@ -15,6 +15,27 @@ For what each security action actually does (reset password, reset 2FA, block/un
 [Account recovery](/guides/account-recovery#if-youre-an-instance-root-helping-someone-else) — this
 page covers the list and detail views around them.
 
+## Adding a user
+
+**Add user** provisions a brand-new account directly — email and an optional **Grant instance
+administrator (root) access** checkbox, nothing else. It's deliberately org-less: this just gets the
+account to exist, the same way `/setup` provisions the very first one. Getting the new user into an
+organization afterward is a separate step, done from that organization's own Members page (or by
+root, from this user's detail page) — until then the account shows up here with no organizations,
+and the person themself sees an empty state on login explaining they're not part of one yet.
+
+If a default SMTP config is set (see [Email & SMTP](/guides/email-smtp)), an email goes out with a
+link to accept the invitation, set a name and password, and log in. If SMTP isn't configured, or the
+send fails for any reason, the invitation is still created — the dialog shows the invite link directly
+so you can copy and share it yourself rather than losing it. Setting up 2FA or a passkey happens after
+first login, from [Account settings](/guides/account-recovery), same as for anyone else — it isn't
+part of accepting the invite.
+
+This is separate from inviting someone into a specific organization (that flow lives on the
+organization's own Members page and always assigns a role within that org). Both kinds of invite —
+and the resulting account creation — are recorded in the [audit log](/guides/audit-logs) as
+`user.invited` and `user.joined`.
+
 ## Searching and paging
 
 The search box filters by name or email, debounced so it doesn't fire a request per keystroke. Rows

@@ -20,6 +20,15 @@ hand-edit it directly on the host if you want to, though there's no need to; the
 normal case. `OSSPLAY_CONFIG_PATH` controls where the `api` container looks for it, which is also the
 knob a SaaS-style deployment would use to mount a separate file per tenant instead of one shared file.
 
+## Instance name
+
+The same page also has an **Instance name** field — a display name (e.g. your company name), separate
+from the domain (a DNS hostname). It's optional, and the only place it's used is instance-level invite
+emails ("You've been invited to join Acme Inc") sent from **Instance → Users**, so a bare hostname
+isn't the only greeting available. If it's not set, invite emails fall back to the configured domain,
+then to "OSSPlay". It's saved through the same request as the rest of this form, so setting it doesn't
+require a domain to also be configured.
+
 ## What actually happens
 
 OSSPlay's self-hosted stack runs behind Caddy, which already does automatic Let's Encrypt HTTPS for
