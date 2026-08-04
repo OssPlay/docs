@@ -1,0 +1,118 @@
+---
+title: Installing on a VPS
+description: Get a self-hosted OSSPlay instance running on any Linux box with a public IP.
+---
+
+This covers a fresh install on any VPS — DigitalOcean, Linode, Hetzner, AWS EC2, a bare-metal box you
+already own. There's nothing provider-specific about the install itself; a short callout at the end
+covers the one or two things that differ on EC2 specifically.
+
+## Requirements
+
+- A Linux box (Ubuntu/Debian recommended) with a public IPv4 address, reachable over SSH.
+- **1 vCPU / 1GB RAM minimum** for the core stack (dashboard, API, Postgres, Redis, Caddy) at small
+  scale. Media processing workers are provisioned separately (see
+  [Remote Servers & SSH keys](/guides/remote-servers)) and don't run on this box, so you don't need to
+  size it for transcoding load.
+- Root or sudo access — the installer installs Docker if it isn't already present.
+- A domain (or subdomain) you can point at this box, if you want a real hostname with HTTPS. You can
+  skip this and use the bare IP for testing, but Let's Encrypt can't issue a certificate for an IP
+  address — see [Custom domains & HTTPS](/guides/custom-domains).
+
+## 1. Open the right ports
+
+The instance needs three inbound ports reachable from the internet:
+
+| Port | Purpose |
+| --- | --- |
+| 22 | SSH, to reach the box at all |
+| 80 | HTTP — also used for the ACME HTTP-01 challenge during certificate issuance |
+| 443 | HTTPS — where the dashboard/API are actually served once a certificate exists |
+
+How you open these depends on your provider — a cloud firewall/security group setting, `ufw`, or both.
+If the install finishes but the dashboard is unreachable, this is the first thing to check (see
+Troubleshooting below).
+
+## 2. Point DNS at the box
+
+Create an **A record** (or AAAA for IPv6) for the hostname you want, pointing at the box's public IP —
+e.g. `ossplay.yourdomain.com → 203.0.113.10`. Do this before running the installer: Caddy requests a
+certificate as part of bringing the stack up, and the ACME challenge fails if DNS hasn't propagated
+yet.
+
+## 3. SSH in and run the installer
+
+```sh
+curl -fsSL https://ossplay.phuzle.com/install.sh | bash
+```
+
+This installs Docker if needed, downloads a pinned `docker-compose.yml` + `Caddyfile` for the latest
+release (no git clone required), generates `.env` (random Postgres password and updater auth token),
+and runs `docker compose pull && docker compose up -d`. Every service in that compose file is the same
+published `ghcr.io/ossplay/ossplay` image running under a different role — nothing is built from
+source on the box itself.
+
+To pin a specific release instead of the latest one — useful for reproducible test environments, or to
+match a version you've already validated elsewhere — pass `--version`:
+
+```sh
+curl -fsSL https://ossplay.phuzle.com/install.sh | bash -s -- --version v0.0.1
+```
+
+This is a **fresh-install pin**, not a safe downgrade path for an already-running instance — this
+repo's database migrations are forward-only, and the update sidecar refuses to move an existing
+instance to an older version for exactly that reason.
+
+By default the installer writes to `/opt/ossplay`; override with `--dir /some/other/path` if you'd
+rather install elsewhere.
+
+## 4. Verify it's up
+
+```sh
+cd /opt/ossplay
+docker compose ps
+docker compose logs -f api
+```
+
+Once `api`, `dashboard`, `postgres`, `redis`, and `caddy` all show as running, visit your domain (or the
+bare IP over `http://` if you skipped DNS). The first request runs the [setup wizard](/getting-started/initial-setup)
+to create the instance root account, followed by the onboarding steps (domain, email, first
+organization).
+
+Certificate issuance happens in the background after Caddy accepts the domain — it can take up to a
+minute on first boot. If HTTPS isn't working yet but HTTP is, give it a moment before assuming
+something's wrong.
+
+## Updating
+
+Instance root can trigger a check from **Instance → Web Server** in the dashboard, or opt into
+automatic checks (same page) so an "update available" badge shows up without a manual click. Either
+way, applying an update is `docker compose pull && docker compose up -d` from the install directory —
+the same mechanic the installer used to get you running in the first place, no rebuild.
+
+## On AWS EC2 specifically
+
+- **Security group**: EC2's firewall is the security group attached to the instance, not `ufw` inside
+  it — open 22/80/443 there. A security group with only 22 open is the most common reason the
+  installer finishes successfully but the dashboard is unreachable.
+- **Elastic IP**: a plain EC2 public IP changes if you stop/start the instance. Attach an Elastic IP
+  before pointing DNS at it, or a reboot will silently break your domain until you update the DNS
+  record.
+- **Instance size**: `t3.micro`/`t4g.micro` is enough to validate the install end to end; size up before
+  running anything beyond a quick test.
+
+## Troubleshooting
+
+- **Dashboard unreachable after install**: almost always a firewall/security-group issue — confirm 80
+  and 443 are actually open from the outside (`curl -v http://<ip>` from a different machine), not just
+  that the containers are running.
+- **Certificate never issues**: confirm DNS has actually propagated (`dig +short yourdomain.com` should
+  return the box's IP) before Caddy tried the challenge. If you changed DNS after the stack was already
+  up, re-save the domain from **Instance → Domain** to have Caddy retry.
+- **Let's Encrypt rate limits**: repeatedly tearing down and reinstalling against the same domain during
+  testing can hit Let's Encrypt's issuance rate limits (a handful of certificates per registered domain
+  per week). Use a throwaway subdomain for repeated test installs, or switch **Certificate provider** to
+  ZeroSSL for that testing window — see [Custom domains & HTTPS](/guides/custom-domains).
+- **`docker compose pull` fails on install**: usually a transient GHCR issue or the box has no outbound
+  internet access — the installer needs to reach both `ghcr.io` (images) and `github.com`/`api.github.com`
+  (release assets, version resolution).

@@ -1,6 +1,7 @@
 {
   "title": "Guides",
   "pages": [
+    "vps-setup",
     "account-recovery",
     "custom-domains",
     "email-smtp",
