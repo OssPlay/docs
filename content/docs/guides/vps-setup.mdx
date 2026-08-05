@@ -43,7 +43,7 @@ yet.
 ## 3. SSH in and run the installer
 
 ```sh
-curl -fsSL https://ossplay.phuzle.com/install.sh | bash
+curl -fsSL https://ossplay.phuzle.com/install.sh | sudo bash
 ```
 
 This installs Docker if needed, downloads a pinned `docker-compose.yml` + `Caddyfile` for the latest
@@ -56,8 +56,11 @@ To pin a specific release instead of the latest one — useful for reproducible 
 match a version you've already validated elsewhere — pass `--version`:
 
 ```sh
-curl -fsSL https://ossplay.phuzle.com/install.sh | bash -s -- --version v0.0.1
+curl -fsSL https://ossplay.phuzle.com/install.sh | sudo bash -s -- --version v0.0.1-alpha.2
 ```
+
+The installer resolves the **most recently published release**, including pre-releases (alpha/beta tags
+like `v0.0.1-alpha.2`). Stable tags will be picked up the same way once published.
 
 This is a **fresh-install pin**, not a safe downgrade path for an already-running instance — this
 repo's database migrations are forward-only, and the update sidecar refuses to move an existing
