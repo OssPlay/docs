@@ -37,7 +37,7 @@ Troubleshooting below).
 ## 2. SSH in and run the installer
 
 ```sh
-curl -fsSL https://<ossplay-website-domain>/install.sh | sudo bash
+curl -fsSL https://ossplay.phuzle.com/install.sh | sudo bash
 ```
 
 This installs Docker if needed, downloads a pinned `docker-compose.yml` + `Caddyfile` for the latest
@@ -50,7 +50,7 @@ To pin a specific release instead of the latest one — useful for reproducible 
 match a version you've already validated elsewhere — pass `--version`:
 
 ```sh
-curl -fsSL https://<ossplay-website-domain>/install.sh | sudo bash -s -- --version v0.0.1-alpha.2
+curl -fsSL https://ossplay.phuzle.com/install.sh | sudo bash -s -- --version v0.0.1-alpha.2
 ```
 
 The installer resolves the **most recently published release**, including pre-releases (alpha/beta tags
