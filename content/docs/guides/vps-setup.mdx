@@ -15,9 +15,10 @@ covers the one or two things that differ on EC2 specifically.
   [Remote Servers & SSH keys](/guides/remote-servers)) and don't run on this box, so you don't need to
   size it for transcoding load.
 - Root or sudo access — the installer installs Docker if it isn't already present.
-- A domain (or subdomain) you can point at this box, if you want a real hostname with HTTPS. You can
-  skip this and use the bare IP for testing, but Let's Encrypt can't issue a certificate for an IP
-  address — see [Custom domains & HTTPS](/guides/custom-domains).
+- A domain (or subdomain) you can eventually point at this box, if you want a real hostname with HTTPS.
+  You don't need this before installing — see step 3 — but Let's Encrypt still can't issue a
+  certificate for a bare IP address, so you'll need one to get HTTPS at all. See
+  [Custom domains & HTTPS](/guides/custom-domains).
 
 ## 1. Open the right ports
 
@@ -26,24 +27,17 @@ The instance needs three inbound ports reachable from the internet:
 | Port | Purpose |
 | --- | --- |
 | 22 | SSH, to reach the box at all |
-| 80 | HTTP — also used for the ACME HTTP-01 challenge during certificate issuance |
-| 443 | HTTPS — where the dashboard/API are actually served once a certificate exists |
+| 80 | HTTP — where the dashboard is reachable immediately after install (see step 2), and later also used for the ACME HTTP-01 challenge once you configure a domain |
+| 443 | HTTPS — where the dashboard/API are served once a domain and certificate exist |
 
 How you open these depends on your provider — a cloud firewall/security group setting, `ufw`, or both.
 If the install finishes but the dashboard is unreachable, this is the first thing to check (see
 Troubleshooting below).
 
-## 2. Point DNS at the box
-
-Create an **A record** (or AAAA for IPv6) for the hostname you want, pointing at the box's public IP —
-e.g. `ossplay.yourdomain.com → 203.0.113.10`. Do this before running the installer: Caddy requests a
-certificate as part of bringing the stack up, and the ACME challenge fails if DNS hasn't propagated
-yet.
-
-## 3. SSH in and run the installer
+## 2. SSH in and run the installer
 
 ```sh
-curl -fsSL https://ossplay.phuzle.com/install.sh | sudo bash
+curl -fsSL https://<ossplay-website-domain>/install.sh | sudo bash
 ```
 
 This installs Docker if needed, downloads a pinned `docker-compose.yml` + `Caddyfile` for the latest
@@ -56,7 +50,7 @@ To pin a specific release instead of the latest one — useful for reproducible 
 match a version you've already validated elsewhere — pass `--version`:
 
 ```sh
-curl -fsSL https://ossplay.phuzle.com/install.sh | sudo bash -s -- --version v0.0.1-alpha.2
+curl -fsSL https://<ossplay-website-domain>/install.sh | sudo bash -s -- --version v0.0.1-alpha.2
 ```
 
 The installer resolves the **most recently published release**, including pre-releases (alpha/beta tags
@@ -69,22 +63,35 @@ instance to an older version for exactly that reason.
 By default the installer writes to `/opt/ossplay`; override with `--dir /some/other/path` if you'd
 rather install elsewhere.
 
-## 4. Verify it's up
+## 3. Log in over the bare IP and finish onboarding
 
-```sh
-cd /opt/ossplay
-docker compose ps
-docker compose logs -f api
-```
+The installer prints a `http://<detected-public-ip>` URL once the stack is pulled and started — open
+it. There's no domain and no DNS involved yet: Caddy boots with a domain-agnostic HTTP-only config
+specifically so the instance is reachable immediately, before you've configured anything (see
+[Custom domains & HTTPS](/guides/custom-domains) for why this is safe — briefly, it's plain HTTP, no
+certificate is attempted for a bare IP, and this bootstrap config is only ever used until you set a
+real domain).
 
-Once `api`, `dashboard`, `postgres`, `redis`, and `caddy` all show as running, visit your domain (or the
-bare IP over `http://` if you skipped DNS). The first request runs the [setup wizard](/getting-started/initial-setup)
-to create the instance root account, followed by the onboarding steps (domain, email, first
-organization).
+The first request runs the [setup wizard](/getting-started/initial-setup) to create the instance root
+account, followed by the onboarding steps (domain, email, first organization) — or skip the domain step
+for now and configure it later from **Instance → Web Server → Domain**.
 
-Certificate issuance happens in the background after Caddy accepts the domain — it can take up to a
-minute on first boot. If HTTPS isn't working yet but HTTP is, give it a moment before assuming
-something's wrong.
+## 4. Point DNS and set your domain
+
+Whenever you're ready for HTTPS: create an **A record** (or AAAA for IPv6) for the hostname you want,
+pointing at the box's public IP — e.g. `ossplay.yourdomain.com → 203.0.113.10` — then enter that domain
+in the dashboard's domain form (onboarding, or **Instance → Web Server → Domain** afterward).
+
+Make sure DNS has actually propagated *before* you save it: this is the moment Caddy switches from the
+bootstrap HTTP config to a config that only answers to your domain and immediately attempts a Let's
+Encrypt (or your chosen provider's) certificate for it. **Saving a domain replaces the bare-IP access
+from step 3 — the dashboard warns about this before you confirm, but it's worth knowing up front.** If
+DNS isn't ready yet, the certificate request just fails harmlessly and you can retry once it is; you
+won't lose access to the box over SSH either way.
+
+Certificate issuance happens in the background right after you save — it can take up to a minute. If
+HTTPS isn't working yet but the domain itself resolves, give it a moment before assuming something's
+wrong.
 
 ## Updating
 
@@ -111,7 +118,7 @@ the same mechanic the installer used to get you running in the first place, no r
   that the containers are running.
 - **Certificate never issues**: confirm DNS has actually propagated (`dig +short yourdomain.com` should
   return the box's IP) before Caddy tried the challenge. If you changed DNS after the stack was already
-  up, re-save the domain from **Instance → Domain** to have Caddy retry.
+  up, re-save the domain from **Instance → Web Server → Domain** to have Caddy retry.
 - **Let's Encrypt rate limits**: repeatedly tearing down and reinstalling against the same domain during
   testing can hit Let's Encrypt's issuance rate limits (a handful of certificates per registered domain
   per week). Use a throwaway subdomain for repeated test installs, or switch **Certificate provider** to
