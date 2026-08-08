@@ -1,0 +1,33 @@
+---
+title: Error logs
+description: Backend failures that don't otherwise surface anywhere in the dashboard.
+---
+
+## Where to find it
+
+**Instance → Error Logs**, gated by the same `instance:view_audit_log` permission as
+[Audit Logs](/guides/audit-logs) — see [Permissions model](/reference/permissions). It's a read-only,
+paginated, newest-first list you can search by message or filter by source.
+
+## What's logged here vs. Audit Logs
+
+[Audit Logs](/guides/audit-logs) records actions someone deliberately took. Error Logs records the
+system trying to do something *on its own* and failing — an outbound email that couldn't be sent, for
+example. These are cases where the user-facing response either already shows a generic warning (an
+invite that says "created but the email could not be sent") or, for flows like password reset, shows
+nothing at all on purpose (so the response can't be used to check whether an email address has an
+account). Either way, before this existed, root's only way to see *why* one of those failed — even
+with working, tested SMTP credentials — was to read raw container logs on the server.
+
+This starts narrow: currently only mail-send failures are recorded (organization invites, instance
+invites, and password-reset emails). It's meant to grow the same way Audit Logs did — as more
+backend failure points turn out to need visibility, not as a general-purpose catch-all for every
+error in the codebase.
+
+## What each entry shows
+
+- **When** — timestamp of the failure.
+- **Source** — a short fixed tag for what kind of thing failed (currently always `mail`).
+- **Message** — the underlying error, e.g. an SMTP connection or authentication failure.
+- **Metadata** (click a row for the full detail dialog) — context specific to that failure, such as
+  which address the send was attempted to and which flow triggered it.

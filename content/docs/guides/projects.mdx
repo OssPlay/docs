@@ -1,0 +1,37 @@
+---
+title: Projects
+description: Create and manage the projects within an organization.
+---
+
+## Where to find it
+
+**Organization → Projects** lists every project in the organization. Creating one needs
+`org:create_projects` (owner/admin); everyone with `org:manage_projects` (owner, admin, and member)
+can edit an existing project's settings. See [Permissions model](/reference/permissions).
+
+## Creating a project
+
+**New project** asks for:
+
+- **Name** — shown throughout the dashboard.
+- **Project ID** — auto-suggested from the name as you type (lowercase, digits, hyphens only), but
+  freely editable before you submit. **Permanent once created**, and **unique across the whole
+  instance**, not just this organization — it's used to organize this project's files in S3, and a
+  forthcoming project-scoped API key feature will key off of it too. If the id you submit is already
+  taken (by any project on the instance, in any organization), you'll be asked to pick another.
+- **Visibility** — **public** or **private**, permanent once created.
+- **S3 destination** — which of the organization's [S3 destinations](/guides/s3-destinations) new
+  files go to. Only destinations matching the visibility you picked are selectable. If none exist yet
+  for that visibility, the dialog tells you to add one first.
+
+## Storage: changing a project's destination
+
+A project's own visibility can't change after creation, but which destination it currently points at
+can — open the project's settings and use the **Storage** card. Only destinations matching the
+project's fixed visibility are offered. Switching only affects new uploads going forward; anything
+already stored under the previous destination stays there — nothing is migrated automatically.
+
+## Renaming or deleting a project
+
+Both live in the project's own settings page. Deleting needs `org:delete_projects` (owner/admin) and
+is irreversible.

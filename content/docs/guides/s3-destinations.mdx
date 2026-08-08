@@ -1,0 +1,53 @@
+---
+title: S3 destinations
+description: Configure where an organization's projects store their files.
+---
+
+## What this is for
+
+**Organization → S3 Destinations** (gated by `org:manage_settings` — owner-only, see
+[Permissions model](/reference/permissions)) is where an organization registers the S3-compatible
+buckets its projects store files in. An org can have several; every [project](/guides/projects)
+picks exactly one at creation and can switch later.
+
+## One destination, one bucket
+
+A destination is bound to exactly one bucket at the point you create it — there's no picker that
+lists every bucket your credentials can see. This isn't a missing feature: OSSPlay's S3 client is
+Bun's own built-in one, not the AWS SDK, and it has no account-level "list my buckets" call, only
+the ability to list objects *within* a bucket you already point it at. So the workflow is: create one
+destination per bucket you want to use, and pick among your organization's already-configured
+destinations when a project needs one.
+
+## Adding a destination
+
+**Add destination** asks for:
+
+- **Label** — a name to recognize it by.
+- **Endpoint, region, bucket, access key ID, secret access key** — standard S3-compatible
+  credentials. Works with AWS S3 or any S3-compatible provider that accepts these.
+- **Visibility** — **public** or **private**, fixed permanently once created. A [project](/guides/projects)
+  can only ever point at a destination whose visibility matches its own, so a public destination's
+  files are assumed to be served directly and a private one's aren't.
+- **CloudFront URL** (optional, public only) — if a CDN sits in front of the bucket, its URL for
+  reference.
+
+## Testing a connection
+
+**Test** on a destination row does a lightweight `ListObjectsV2` call against the configured bucket
+(one object, nothing written) to confirm the credentials, endpoint, and bucket actually work. The
+result updates the row's status badge (OK / Error) and, on failure, shows the specific error
+underneath it. If a test ever fails and you can't tell why from the message here, check
+[Error Logs](/guides/error-logs) — some failure modes there are truncated in the row itself but full
+in the log entry's metadata.
+
+## Deleting a destination
+
+Blocked while any project still points at it — repoint or delete those projects first. A destination
+with no projects referencing it can always be removed.
+
+## Changing a project's destination later
+
+A project's own visibility is permanent, but which destination it currently writes new files to is
+not — see [Projects](/guides/projects)'s Storage section. Switching destinations only affects new
+uploads; files already stored under the previous destination stay exactly where they are.

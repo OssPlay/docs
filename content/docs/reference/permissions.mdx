@@ -25,7 +25,7 @@ membership row required. Concretely, root can:
 | `instance:manage_settings` | SMTP configuration, the custom domain and certificate provider |
 | `instance:manage_users` | Every account on the instance: force-reset a password, clear 2FA/passkeys, block/unblock, delete, and edit an account's role in any organization |
 | `instance:manage_workers` | SSH keys, remote servers, and worker-fleet provisioning |
-| `instance:view_audit_log` | Read-only access to the [audit log](/guides/audit-logs) |
+| `instance:view_audit_log` | Read-only access to the [audit log](/guides/audit-logs) and [error logs](/guides/error-logs) |
 
 `instance:manage_users` is deliberately **not** extended to org owners/admins — a user's password,
 2FA secret, and passkeys aren't associated with any particular organization at all, so there's no
@@ -37,8 +37,8 @@ applied to one more resource, not a new kind of scope-crossing. See
 
 | Role | Can do |
 | --- | --- |
-| **Owner** | Everything below, plus org settings and deleting the org |
-| **Admin** | Manage projects, rules, and assets — not membership or deletion |
+| **Owner** | Everything below, plus org settings, deleting the org, and [S3 destinations](/guides/s3-destinations) (`org:manage_settings` — credential-bearing, so it stays owner-only rather than extending to admin) |
+| **Admin** | Create/manage/delete [projects](/guides/projects), and manage rules and assets — not membership, org settings, or destinations |
 | **Member** | Work within existing projects per their rules |
 
 Root automatically has owner-level access to every organization without needing a membership row —

@@ -7,6 +7,9 @@
     "email-smtp",
     "instance-users",
     "remote-servers",
-    "audit-logs"
+    "projects",
+    "s3-destinations",
+    "audit-logs",
+    "error-logs"
   ]
 }
