@@ -42,9 +42,9 @@ curl -fsSL https://ossplay.phuzle.com/install.sh | sudo bash
 
 This installs Docker if needed, downloads a pinned `docker-compose.yml` + `Caddyfile` for the latest
 release (no git clone required), generates `.env` (random Postgres password and updater auth token),
-and runs `docker compose pull && docker compose up -d`. Every service in that compose file is the same
-published `ghcr.io/ossplay/ossplay` image running under a different role — nothing is built from
-source on the box itself.
+and runs `docker compose pull && docker compose up -d`. Every service in that compose file pulls its
+own role-scoped `ghcr.io/ossplay/ossplay:<version>-<role>` tag (same GHCR package, one tag per role) —
+nothing is built from source on the box itself.
 
 To pin a specific release instead of the latest one — useful for reproducible test environments, or to
 match a version you've already validated elsewhere — pass `--version`:
